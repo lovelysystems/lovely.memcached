@@ -1,0 +1,26 @@
+<configure 
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="zope"
+    >
+
+  <class class=".utility.MemcachedClient">
+    <implements
+        interface="zope.annotation.interfaces.IAttributeAnnotatable"
+        />
+
+    <require 
+        permission="zope.View" 
+        interface=".interfaces.IMemcachedClient"
+        />
+
+    <require 
+        permission="zope.ManageServices" 
+        set_schema=".interfaces.IMemcachedClient"
+        />
+  </class>
+
+  <include package=".browser"/>
+  
+</configure>
+

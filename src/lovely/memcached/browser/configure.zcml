@@ -1,0 +1,30 @@
+<configure 
+    xmlns="http://namespaces.zope.org/browser"
+    i18n_domain="zope"
+    >
+
+  <addMenuItem
+      title="Memcached Client"
+      description="Add a memcached client"
+      class="..utility.MemcachedClient"
+      permission="zope.ManageServices"
+      />
+
+  <editform
+      schema="..interfaces.IMemcachedClient"
+      label="Configure"
+      name="configure.html"
+      menu="zmi_views" title="Configure"
+      permission="zope.ManageServices"
+      />
+
+  <page
+      name="stats.html"
+      menu="zmi_views"
+      title="Statistics"
+      for="..interfaces.IMemcachedClient"
+      permission="zope.ManageServices"
+      template="stats.pt"
+      />
+
+</configure>

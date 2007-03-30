@@ -1,0 +1,38 @@
+<html metal:use-macro="context/@@standard_macros/view"
+    i18n:domain="zope">
+<body>
+<div metal:fill-slot="body">
+
+  <p><span tal:replace="context/zope:name"/>
+  <span i18n:translate="">Memcached statistics</span></p>
+
+  
+  <div tal:define="stats context/getStatistics"
+       tal:condition="stats">
+  
+  <metal:block tal:define="rows python:sorted(stats[0][1].keys());
+                           colNames python:map(lambda x: x[0], stats);
+                           colData python:map(lambda x: x[1], stats);">
+
+    <table border="1" cellpadding="2">
+      <thead>
+        <th>&nbsp;</th>
+        <th tal:repeat="colName colNames" tal:content="colName"/>
+      </thead>
+      <tbody>
+        <tr tal:repeat="row rows">
+          <th tal:content="row" align="left"/>
+          <td tal:repeat="colName colNames"
+              tal:content="python:colData[repeat['colName'].index()][row]"/>
+        </tr>
+        
+      </tbody>
+    </table>
+    
+  </metal:block>
+  </div>
+  
+</div>
+</body>
+</html>
+
