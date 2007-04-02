@@ -137,16 +137,10 @@ If not give the ``None`` namespace is used.
   >>> sorted(util3.keys(u'3'))
   [5]
 
-  >>> t = time.time()
-  >>> for i in range(1000):
-  ...     util3.set(i, i, ns=u'speed')
-  >>> #print time.time()-t
-  >>> thread = threading.Thread(target=util3.keys, args=(u'speed',))
-  >>> t = time.time()
-  >>> thread.start()
-  >>> thread.join()
-  >>> print time.time()-t
+This is just for an internal test, it updates the key records on the
+server.
 
+  >>> util3._keysUpdate([1,2], u'speed')
 
 Statistics
 ==========

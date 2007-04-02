@@ -33,7 +33,10 @@ from interfaces import IMemcachedClient
 
 log = logging.getLogger('lovely.memcached')
 
+# base namespace for key management
 NS = 'lovely.memcached'
+# namespace for key timesamps
+STAMP_NS = NS + '.stamps'
 
 class MemcachedClient(persistent.Persistent):
     interface.implements(IMemcachedClient)
@@ -163,6 +166,8 @@ class MemcachedClient(persistent.Persistent):
     def _keysInit(self, storage):
         storage.keys = {}
         storage.uid = random.randint(0, sys.maxint)
+        storage.dirtyKeys = set()
+        storage.lastUpdates = {}
         clients = self._getClients()
         if not storage.uid in clients:
             clients.add(storage.uid)
@@ -171,25 +176,15 @@ class MemcachedClient(persistent.Persistent):
 
     def _keysSet(self, key, ns, lifetime):
         """track a key"""
-        if not self.trackKeys or ns==NS: return
+        if not self.trackKeys or ns in (NS, STAMP_NS): return
         s = self.storage
         keys = s.keys.get(ns)
-        t = time.time()
-        if lifetime!=0:
-            tEnd = t + lifetime
-        else:
-            tEnd = 0
         if keys is None:
-            keys = set([(key, tEnd)])
+            keys = set([key])
             s.keys[ns] = keys
-        elif key in keys:
-            return
-        else:
-            keys.add((key, tEnd))
-        for key, eol in keys:
-            if eol == 0 or eol>t:
-                continue
-            s.remove((key, eol))
+        elif not key in keys:
+            keys.add(key)
+        self.set(s.uid, (ns, key), lifetime=lifetime, ns=STAMP_NS)
         self.set(keys, (s.uid, ns), lifetime=0, ns=NS)
 
     def _getClients(self):
@@ -201,15 +196,42 @@ class MemcachedClient(persistent.Persistent):
         res = set()
         s = self.storage
         t = time.time()
+        localKeys = s.keys.get(ns, set())
         for client in self._getClients():
             if client == s.uid:
-                v = s.keys.get(ns, [])
+                v = localKeys
             else:
-                v = self.query((client, ns), default=[], ns=NS)
-            for k, eol in v:
-                if eol == 0 or eol>t:
-                    res.add(k)
+                v = self.query((client, ns), default=set(), ns=NS)
+            res.update(v)
+        # look at the timestamps
+        changed = False
+        for k in list(res):
+            uid = self.query((ns, k), ns=STAMP_NS)
+            if uid is None:
+                if localKeys:
+                    changed=True
+                    localKeys.discard(k)
+                res.discard(k)
+        if changed:
+            # update the server, we do this just here, because the
+            # keys method always looks at the stamps, so it is not
+            # required to delete keys from the stored keylist at key
+            # setting time
+            s.dirtyKeys.add(ns)
+            self._keysUpdate(localKeys, ns)
         return res
-                
-    
+        
+
+    def _keysUpdate(self, keys, ns):
+        # updates the key set of this thread on server
+        s = self.storage
+        if not ns in s.dirtyKeys:
+            return
+        t = time.time()
+        # we update only every 5 minutes
+        if s.lastUpdates.get(ns, 0) + 300 > t:
+            return
+        self.set(keys, (s.uid, ns), lifetime=0, ns=NS)
+        s.dirtyKeys.discard(ns)
+        s.lastUpdates[ns] = t
         

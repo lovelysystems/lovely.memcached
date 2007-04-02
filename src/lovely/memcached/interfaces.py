@@ -70,3 +70,8 @@ class IMemcachedClient(interface.Interface):
     def invalidateAll():
         """invalidates all data of the memcached servers, not that all
         namespaces are invalidated"""
+
+    def keys(ns=None):
+        """if trackKeys is True, returns the keys defined in the
+        namespace"""
+        
