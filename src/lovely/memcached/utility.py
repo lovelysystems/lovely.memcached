@@ -18,6 +18,9 @@ __docformat__ = "reStructuredText"
 
 
 import md5
+import random
+import sys
+import time
 import logging
 import memcache
 import cPickle
@@ -30,21 +33,27 @@ from interfaces import IMemcachedClient
 
 log = logging.getLogger('lovely.memcached')
 
+NS = 'lovely.memcached'
+
 class MemcachedClient(persistent.Persistent):
     interface.implements(IMemcachedClient)
 
     defaultNS = FieldProperty(IMemcachedClient['defaultNS'])
     servers = FieldProperty(IMemcachedClient['servers'])
-    defaultLifetime = FieldProperty(IMemcachedClient['defaultLifetime'])
+    defaultLifetime = FieldProperty(
+        IMemcachedClient['defaultLifetime'])
+    trackKeys = FieldProperty(IMemcachedClient['trackKeys'])
     
     def __init__(self, servers=None, defaultAge=None,
-                 defaultNS=None):
+                 defaultNS=None, trackKeys=None):
         if servers is not None:
             self.servers = servers
         if defaultAge is not None:
             self.defaultAge = defaultAge
         if defaultNS is not None:
             self.defaultNS = defaultNS
+        if trackKeys is not None:
+            self.trackKeys = trackKeys
 
     def getStatistics(self):
         return self.client.get_stats()
@@ -55,9 +64,13 @@ class MemcachedClient(persistent.Persistent):
         ns = ns or self.defaultNS or None
 
         data = cPickle.dumps(data)
-        log.debug('set: %r, %r, %r, %r' % (key, len(data), ns, lifetime))
-        self.client.set(self._buildKey(key, ns), data, lifetime)
+        log.debug('set: %r, %r, %r, %r' % (key,
+                                           len(data), ns,
+                                           lifetime))
 
+        self.client.set(self._buildKey(key, ns), data, lifetime)
+        self._keysSet(key, ns, lifetime)
+        
     def query(self, key, default=None, ns=None):
         ns = ns or self.defaultNS or None
         res = self.client.get(self._buildKey(key, ns))
@@ -142,5 +155,61 @@ class MemcachedClient(persistent.Persistent):
         # thread.
         if not hasattr(self, '_v_storage'):
             self._v_storage = local()
+        if self.trackKeys and not hasattr(self._v_storage, 'keys'):
+            self._keysInit(self._v_storage)
         return self._v_storage
 
+
+    def _keysInit(self, storage):
+        storage.keys = {}
+        storage.uid = random.randint(0, sys.maxint)
+        clients = self._getClients()
+        if not storage.uid in clients:
+            clients.add(storage.uid)
+            self.set(clients, 'clients', lifetime=0, ns=NS)
+
+
+    def _keysSet(self, key, ns, lifetime):
+        """track a key"""
+        if not self.trackKeys or ns==NS: return
+        s = self.storage
+        keys = s.keys.get(ns)
+        t = time.time()
+        if lifetime!=0:
+            tEnd = t + lifetime
+        else:
+            tEnd = 0
+        if keys is None:
+            keys = set([(key, tEnd)])
+            s.keys[ns] = keys
+        elif key in keys:
+            return
+        else:
+            keys.add((key, tEnd))
+        for key, eol in keys:
+            if eol == 0 or eol>t:
+                continue
+            s.remove((key, eol))
+        self.set(keys, (s.uid, ns), lifetime=0, ns=NS)
+
+    def _getClients(self):
+        return self.query('clients', set(), ns=NS)
+
+    def keys(self, ns=None):
+        if not self.trackKeys:
+            raise NotImplementedError, "trackKeys not enabled"
+        res = set()
+        s = self.storage
+        t = time.time()
+        for client in self._getClients():
+            if client == s.uid:
+                v = s.keys.get(ns, [])
+            else:
+                v = self.query((client, ns), default=[], ns=NS)
+            for k, eol in v:
+                if eol == 0 or eol>t:
+                    res.add(k)
+        return res
+                
+    
+        

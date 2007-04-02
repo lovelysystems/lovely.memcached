@@ -75,6 +75,79 @@ Note that if invalidatAll is called then all namespaces are deleted.
   >>> util1.query(1) is util2.query(2) is None
   True
 
+Getting existing keys
+=====================
+
+The memcached daemon does not provide the ability to retrieve a list
+of all keys that are stored. In the utility this is implemented.
+
+  >>> util1.keys()
+  Traceback (most recent call last):
+  ...
+  NotImplementedError: trackKeys not enabled
+
+The key tracking adds on overhead so it must be enabled explicitly.
+
+  >>> util3 = MemcachedClient(trackKeys=True)
+  >>> util3.set(1,1)
+  >>> sorted(util3.keys())
+  [1]
+  >>> util3.set(2,2)
+  >>> sorted(util3.keys())
+  [1, 2]
+
+Keys are global on memcached daemons. In order to test this we need to
+have multiple threads.
+
+  >>> import threading
+  >>> log = []
+
+Each thread has a differnt thread.
+
+  >>> def differentConn():
+  ...     util3.set(3,3)
+  ...     log.append(sorted(util3.keys()))
+  ...
+  >>> thread = threading.Thread(target=differentConn)
+  >>> thread.start()
+  >>> thread.join()
+  >>> log
+  [[1, 2, 3]]
+
+Keys expire too
+
+  >>> util3.set(4, 4, lifetime=1)
+  >>> sorted(util3.keys())
+  [1, 2, 3, 4]
+  >>> import time
+  >>> time.sleep(2)
+  >>> sorted(util3.keys())
+  [1, 2, 3]
+  >>> util3.query(4) is None
+  True
+
+Keys are always bound to a namespace.
+
+  >>> util3.set(5, 5, ns=u'3')
+
+If not give the ``None`` namespace is used.
+
+  >>> sorted(util3.keys())
+  [1, 2, 3]
+  >>> sorted(util3.keys(u'3'))
+  [5]
+
+  >>> t = time.time()
+  >>> for i in range(1000):
+  ...     util3.set(i, i, ns=u'speed')
+  >>> #print time.time()-t
+  >>> thread = threading.Thread(target=util3.keys, args=(u'speed',))
+  >>> t = time.time()
+  >>> thread.start()
+  >>> thread.join()
+  >>> print time.time()-t
+
+
 Statistics
 ==========
 

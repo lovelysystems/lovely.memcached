@@ -44,6 +44,12 @@ class IMemcachedClient(interface.Interface):
         default = 3600,
         )
 
+    trackKeys = schema.Bool(
+        title = u'Track Keys',
+        description = u'Enable the keys method',
+        required = False,
+        default = False,
+        )
 
     def getStatistics():
         """returns the memcached stats"""
