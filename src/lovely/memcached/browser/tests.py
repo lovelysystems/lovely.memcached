@@ -19,8 +19,16 @@ __docformat__ = "reStructuredText"
 import unittest
 from zope.testing import doctest
 from zope.app.testing import functional
+from z3c.testing import layer
+from z3c.configurator import configurator
 
-functional.defineLayer('MemcachedLayer', 'ftesting.zcml')
+def appSetUp(app):
+    configurator.configure(app, {},
+                           names = ['lovely.memcachedclient'])
+
+layer.defineLayer('MemcachedLayer', zcml='ftesting.zcml',
+                  appSetUp=appSetUp,
+                  clean=True)
 
 def test_suite():
     suite = functional.FunctionalDocFileSuite('README.txt')

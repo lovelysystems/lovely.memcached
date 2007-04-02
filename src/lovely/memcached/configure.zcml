@@ -1,6 +1,6 @@
 <configure 
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="zope"
     >
 
@@ -20,6 +20,10 @@
         />
   </class>
 
+  <adapter factory=".configurator.SetUpMemcachedClient"
+           zcml:condition="installed z3c.configurator"
+           name="lovely.memcachedclient"/>
+  
   <include package=".browser"/>
   
 </configure>

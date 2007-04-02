@@ -89,6 +89,8 @@ class MemcachedClient(persistent.Persistent):
     def invalidateAll(self):
         # notice this does not look at namespaces
         self.client.flush_all()
+        if hasattr(self, '_v_storage'):
+            del self._v_storage
 
     def _buildKey(self, key, ns):
 
