@@ -19,20 +19,38 @@ __docformat__ = "reStructuredText"
 import interfaces
 import utility
 from zope import component
+from zope.interface.interfaces import IMethod
+from zope import schema
 from z3c.configurator import configurator
 from zope.app.component.interfaces import ISite
 from zope.lifecycleevent import ObjectCreatedEvent
 import zope.event
 from zope.security.proxy import removeSecurityProxy
 
-class SetUpMemcachedClient(configurator.ConfigurationPluginBase):
-    component.adapts(ISite)
+class IMemcachedClientProperties(interfaces.IMemcachedClient):
 
+    name = schema.TextLine(title=u'Name',
+                           required=False,
+                           default=u'')
+    
+class SetUpMemcachedClient(configurator.SchemaConfigurationPluginBase):
+    component.adapts(ISite)
+    schema = IMemcachedClientProperties
+    
     def __call__(self, data):
+
+        for name in self.schema:
+            field = self.schema[name]
+            if IMethod.providedBy(field):
+                continue
+            if data.get(name) is None:
+                data[name] = self.schema[name].default
+        name = data.get('name')
         site = self.context
         # we just wanna have one
         util = component.queryUtility(interfaces.IMemcachedClient,
-                                      context=site)
+                                      context=site,
+                                      name=name)
         if util is not None:
             return
         # needed to be called TTW
@@ -40,5 +58,9 @@ class SetUpMemcachedClient(configurator.ConfigurationPluginBase):
         default = sm['default']
         util = utility.MemcachedClient()
         zope.event.notify(ObjectCreatedEvent(util))
-        default['memcachedclient'] = util
-        sm.registerUtility(util, interfaces.IMemcachedClient)
+        for attr in ['trackKeys', 'defaultNS', 'servers',
+                     'defaultLifetime']:
+            setattr(util, attr, data[attr])
+        default[u'memcachedclient_' + name] = util
+        sm.registerUtility(util, interfaces.IMemcachedClient,
+                           name=name)
