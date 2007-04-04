@@ -84,6 +84,8 @@ class MemcachedClient(persistent.Persistent):
     def invalidate(self, key, ns=None):
         ns = ns or self.defaultNS or None
         log.debug('invalidate: %r, %r '% (key, ns))
+        if self.trackKeys:
+            self.client.delete(self._buildKey((ns, key), STAMP_NS))
         self.client.delete(self._buildKey(key, ns))
 
     def invalidateAll(self):

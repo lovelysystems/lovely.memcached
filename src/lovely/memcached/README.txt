@@ -137,6 +137,12 @@ If not give the ``None`` namespace is used.
   >>> sorted(util3.keys(u'3'))
   [5]
 
+When an invalidation is done, the keys are updated.
+
+  >>> util3.invalidate(1)
+  >>> sorted(util3.keys())
+  [2, 3]
+
 This is just for an internal test, it updates the key records on the
 server.
 
