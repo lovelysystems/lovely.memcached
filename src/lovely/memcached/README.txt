@@ -22,9 +22,11 @@ Start a memcache instance with : memcached <optional options>
   >>> util.defaultLifetime
   3600
 
-To store a new value in the cache we just need to set it.
+To store a new value in the cache we just need to set it. The set
+method returns the generated memcached key for the cache key.
 
   >>> util.set('cached value', 'cache_key')
+  '188693688126b424eb89e1385eca6f01'
   >>> util.query('cache_key')
   'cached value'
 
@@ -36,7 +38,7 @@ If we no longer need the cached value we can invalidate it.
 
 We have extended the original implementation on memcache.py for unicode.
 
-  >>> util.set(u'cached value ä', 'cache_key')
+  >>> key = util.set(u'cached value ä', 'cache_key')
   >>> util.query('cache_key') == u'cached value ä'
   True
 
@@ -56,8 +58,8 @@ query methods.
 
   >>> util1 = MemcachedClient(defaultNS=u'1')
   >>> util2 = MemcachedClient(defaultNS=u'2')
-  >>> util1.set(1,1)
-  >>> util2.set(2,2)
+  >>> k = util1.set(1,1)
+  >>> k = util2.set(2,2)
   >>> util1.query(1)
   1
   >>> util1.query(2) is None
@@ -89,10 +91,10 @@ of all keys that are stored. In the utility this is implemented.
 The key tracking adds on overhead so it must be enabled explicitly.
 
   >>> util3 = MemcachedClient(trackKeys=True)
-  >>> util3.set(1,1)
+  >>> k = util3.set(1,1)
   >>> sorted(util3.keys())
   [1]
-  >>> util3.set(2,2)
+  >>> k = util3.set(2,2)
   >>> sorted(util3.keys())
   [1, 2]
 
@@ -116,7 +118,7 @@ Each thread has a differnt thread.
 
 Keys expire too
 
-  >>> util3.set(4, 4, lifetime=1)
+  >>> k = util3.set(4, 4, lifetime=1)
   >>> sorted(util3.keys())
   [1, 2, 3, 4]
   >>> import time
@@ -128,7 +130,7 @@ Keys expire too
 
 Keys are always bound to a namespace.
 
-  >>> util3.set(5, 5, ns=u'3')
+  >>> k = util3.set(5, 5, ns=u'3')
 
 If not give the ``None`` namespace is used.
 
@@ -148,6 +150,52 @@ server.
 
   >>> util3._keysUpdate([1,2], u'speed')
 
+
+Raw Keys
+========
+
+Normaly the utility generates md5 hash keys in order to have short
+keys. Sometimes, if an axternal application wants to have access to
+the values, it is usefull to be able to set keys explicitly. This can
+be done by setting the raw keyword argument to True on the set
+and query methods.
+
+  >>> util4 = MemcachedClient()
+
+If raw is used, the key must be a string.
+
+  >>> k = util.set(u'value of a', u'a', raw=True)
+  Traceback (most recent call last):
+  ValueError: u'a'
+
+  >>> util.set(u'value of a', 'a', raw=True)
+  'a'
+
+The namespace is simply prepended to the key if provided. And must be
+a string too.
+
+  >>> util.set(u'value of a', 'a', ns=u'NS_', raw=True)
+  Traceback (most recent call last):
+  ValueError: u'NS_a'
+  >>> util.set(u'value of a', 'a', ns='NS_', raw=True)
+  'NS_a'
+  
+Now we need can get the value with the raw key.
+
+  >>> util.query('a', raw=True)
+  u'value of a'
+  >>> util.query('a', raw=False) is None
+  True
+
+Also invalidation takes a raw argument.
+
+  >>> util.invalidate('a')
+  >>> util.query('a', raw=True)
+  u'value of a'
+  >>> util.invalidate('a', raw=True)
+  >>> util.query('a', raw=True) is None
+  True
+
 Statistics
 ==========
 
@@ -161,7 +209,7 @@ will be stored. This behaviour allows us to run without a connected memcache
 server. As soon as a server is back online it will immediately used.
 
   >>> util.servers = ['127.0.0.1:8125']
-  >>> util.set('cached value', 'cache_object')
+  >>> k = util.set('cached value', 'cache_object')
   >>> util.query('cache_object') is None
   True
 

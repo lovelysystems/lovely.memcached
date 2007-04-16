@@ -30,6 +30,7 @@ import persistent
 from zope.schema.fieldproperty import FieldProperty
 from zope import interface
 from interfaces import IMemcachedClient
+from types import StringType
 
 log = logging.getLogger('lovely.memcached')
 
@@ -61,7 +62,7 @@ class MemcachedClient(persistent.Persistent):
     def getStatistics(self):
         return self.client.get_stats()
 
-    def set(self, data, key, lifetime=None, ns=None):
+    def set(self, data, key, lifetime=None, ns=None, raw=False):
         if lifetime is None:
             lifetime = self.defaultLifetime
         ns = ns or self.defaultNS or None
@@ -70,23 +71,25 @@ class MemcachedClient(persistent.Persistent):
         log.debug('set: %r, %r, %r, %r' % (key,
                                            len(data), ns,
                                            lifetime))
-
-        self.client.set(self._buildKey(key, ns), data, lifetime)
-        self._keysSet(key, ns, lifetime)
         
-    def query(self, key, default=None, ns=None):
+        bKey = self._buildKey(key, ns, raw=raw)
+        self.client.set(bKey, data, lifetime)
+        self._keysSet(key, ns, lifetime)
+        return bKey
+        
+    def query(self, key, default=None, ns=None, raw=False):
         ns = ns or self.defaultNS or None
-        res = self.client.get(self._buildKey(key, ns))
+        res = self.client.get(self._buildKey(key, ns, raw=raw))
         if res is None:
             return default
         return cPickle.loads(res)
 
-    def invalidate(self, key, ns=None):
+    def invalidate(self, key, ns=None, raw=False):
         ns = ns or self.defaultNS or None
         log.debug('invalidate: %r, %r '% (key, ns))
         if self.trackKeys:
             self.client.delete(self._buildKey((ns, key), STAMP_NS))
-        self.client.delete(self._buildKey(key, ns))
+        self.client.delete(self._buildKey(key, ns, raw))
 
     def invalidateAll(self):
         # notice this does not look at namespaces
@@ -94,7 +97,7 @@ class MemcachedClient(persistent.Persistent):
         if hasattr(self, '_v_storage'):
             del self._v_storage
 
-    def _buildKey(self, key, ns):
+    def _buildKey(self, key, ns, raw=False):
 
         """builds a key for key and ns, if key is a persistent
         object its oid is used
@@ -132,8 +135,18 @@ class MemcachedClient(persistent.Persistent):
         >>> kb1 = vc1._buildKey(b, 1)
         >>> ka1 == kb1
         False
+
+        If we set the key to raw we must provide a string
+        
         
         """
+        if raw is True:
+            if ns:
+                key = ns+key
+            if type(key)!= StringType:
+                raise ValueError, repr(key)
+            return key
+        
         oid = getattr(key, '_p_oid', None)
         if oid is not None:
             key = oid
