@@ -197,6 +197,40 @@ Also invalidation takes a raw argument.
   >>> util.query('a', raw=True) is None
   True
 
+Dependencies
+============
+
+It is possible to declare arbitrary python objects as so called
+dependencies upon setting a cache value. These dependencies can then
+be used to invalidate entries.
+
+  >>> util5 = MemcachedClient()
+  >>> k = util5.set('data1', 'key1', dependencies=['something'])
+  >>> k = util5.set('data2', 'key2', dependencies=['something'])
+
+  >>> util5.query('key1')
+  'data1'
+  >>> util5.query('key2')
+  'data2'
+  
+  >>> util.invalidate(dependencies=['otherthing'])
+  >>> util5.query('key1')
+  'data1'
+  >>> util5.query('key2')
+  'data2'
+  >>> util.invalidate(dependencies=['something', 'another thing'])
+  >>> util5.query('key1') is None
+  True
+  >>> util5.query('key2') is None
+  True
+  >>> k = util5.set('data3', 'key3', ns='1', dependencies=['something'])
+  >>> util.invalidate(dependencies=['something'])
+  >>> util5.query('key3', ns='1')
+  'data3'
+  >>> util.invalidate(ns='1', dependencies=['something'])
+  >>> util5.query('key3', ns='1') is None
+  True
+
 Statistics
 ==========
 

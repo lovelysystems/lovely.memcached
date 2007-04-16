@@ -38,6 +38,8 @@ log = logging.getLogger('lovely.memcached')
 NS = 'lovely.memcached'
 # namespace for key timesamps
 STAMP_NS = NS + '.stamps'
+# namespace for deps
+DEP_NS = NS + '.dep'
 
 class MemcachedClient(persistent.Persistent):
     interface.implements(IMemcachedClient)
@@ -62,7 +64,8 @@ class MemcachedClient(persistent.Persistent):
     def getStatistics(self):
         return self.client.get_stats()
 
-    def set(self, data, key, lifetime=None, ns=None, raw=False):
+    def set(self, data, key, lifetime=None, ns=None, raw=False,
+            dependencies=[]):
         if lifetime is None:
             lifetime = self.defaultLifetime
         ns = ns or self.defaultNS or None
@@ -75,7 +78,18 @@ class MemcachedClient(persistent.Persistent):
         bKey = self._buildKey(key, ns, raw=raw)
         self.client.set(bKey, data, lifetime)
         self._keysSet(key, ns, lifetime)
+        self._depSet(bKey, ns, dependencies)
         return bKey
+
+    def _depSet(self, key, ns, deps):
+        for dep in deps:
+            depKey = self._buildDepKey(dep, ns)
+            keys = self.client.get(depKey)
+            if keys is None:
+                keys = (key,)
+            else:
+                keys = keys +  (key,)
+            self.client.set(depKey, keys)
         
     def query(self, key, default=None, ns=None, raw=False):
         ns = ns or self.defaultNS or None
@@ -84,12 +98,22 @@ class MemcachedClient(persistent.Persistent):
             return default
         return cPickle.loads(res)
 
-    def invalidate(self, key, ns=None, raw=False):
+    def _buildDepKey(self, dep, ns):
+        return DEP_NS + self._buildKey(dep, ns)
+
+    def invalidate(self, key=None, ns=None, raw=False, dependencies=[]):
         ns = ns or self.defaultNS or None
         log.debug('invalidate: %r, %r '% (key, ns))
         if self.trackKeys:
             self.client.delete(self._buildKey((ns, key), STAMP_NS))
         self.client.delete(self._buildKey(key, ns, raw))
+        for dep in dependencies:
+            depKey = self._buildDepKey(dep, ns)
+            keys = self.client.get(depKey)
+            self.invalidate(depKey)
+            if keys is not None:
+                for key in keys:
+                    self.client.delete(key)
 
     def invalidateAll(self):
         # notice this does not look at namespaces
