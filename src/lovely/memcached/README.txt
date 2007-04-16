@@ -179,7 +179,7 @@ a string too.
   ValueError: u'NS_a'
   >>> util.set(u'value of a', 'a', ns='NS_', raw=True)
   'NS_a'
-  >>> util.set(u'value of a', 'http://a/bc?x=1', ns='NS_', raw=True)
+
   
 Now we need can get the value with the raw key.
 
