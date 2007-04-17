@@ -19,11 +19,11 @@ setup (
                                   'zope.app.zcmlfiles',
                                   'zope.testbrowser',
                                   'z3c.testing',
-                                  'z3c.configurator']),
+                                  ]),
     install_requires = ['setuptools',
                         'python-memcached',
                         'ZODB3',
                         'zope.schema',
-        ],
-    dependency_links = ['http://download.zope.org/distribution']
+                        'z3c.configurator'
+                        ],
     )
