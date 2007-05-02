@@ -64,12 +64,20 @@ class MemcachedClient(persistent.Persistent):
     def getStatistics(self):
         return self.client.get_stats()
 
+
+    def _getNS(self, ns, raw):
+        if not ns and self.defaultNS:
+            if raw:
+                ns = str(self.defaultNS)
+            else:
+                ns = self.defaultNS
+        return ns or None
+
     def set(self, data, key, lifetime=None, ns=None, raw=False,
             dependencies=[]):
         if lifetime is None:
             lifetime = self.defaultLifetime
-        ns = ns or self.defaultNS or None
-
+        ns = self._getNS(ns, raw)
         data = cPickle.dumps(data)
         log.debug('set: %r, %r, %r, %r' % (key,
                                            len(data), ns,
@@ -92,7 +100,7 @@ class MemcachedClient(persistent.Persistent):
             self.client.set(depKey, keys)
         
     def query(self, key, default=None, ns=None, raw=False):
-        ns = ns or self.defaultNS or None
+        ns = self._getNS(ns, raw)
         res = self.client.get(self._buildKey(key, ns, raw=raw))
         if res is None:
             return default
@@ -101,8 +109,9 @@ class MemcachedClient(persistent.Persistent):
     def _buildDepKey(self, dep, ns):
         return DEP_NS + self._buildKey(dep, ns)
 
-    def invalidate(self, key=None, ns=None, raw=False, dependencies=[]):
-        ns = ns or self.defaultNS or None
+    def invalidate(self, key=None, ns=None, raw=False,
+                   dependencies=[]):
+        ns = self._getNS(ns, raw)
         log.debug('invalidate: %r, %r '% (key, ns))
         if self.trackKeys:
             self.client.delete(self._buildKey((ns, key), STAMP_NS))
