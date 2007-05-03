@@ -78,7 +78,8 @@ class MemcachedClient(persistent.Persistent):
         if lifetime is None:
             lifetime = self.defaultLifetime
         ns = self._getNS(ns, raw)
-        data = cPickle.dumps(data)
+        if not raw:
+            data = cPickle.dumps(data)
         log.debug('set: %r, %r, %r, %r' % (key,
                                            len(data), ns,
                                            lifetime))
@@ -104,6 +105,8 @@ class MemcachedClient(persistent.Persistent):
         res = self.client.get(self._buildKey(key, ns, raw=raw))
         if res is None:
             return default
+        if raw:
+            return res
         return cPickle.loads(res)
 
     def _buildDepKey(self, dep, ns):

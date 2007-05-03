@@ -181,10 +181,11 @@ a string too.
   'NS_a'
 
   
-Now we need can get the value with the raw key.
+Now we need can get the value with the raw key. Note also the value
+was treated as a string, so we get a string back instead of a unicode.
 
   >>> util.query('a', raw=True)
-  u'value of a'
+  'value of a'
   >>> util.query('a', raw=False) is None
   True
 
@@ -192,7 +193,7 @@ Also invalidation takes a raw argument.
 
   >>> util.invalidate('a')
   >>> util.query('a', raw=True)
-  u'value of a'
+  'value of a'
   >>> util.invalidate('a', raw=True)
   >>> util.query('a', raw=True) is None
   True
