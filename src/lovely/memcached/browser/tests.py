@@ -26,6 +26,7 @@ def appSetUp(app):
     configurator.configure(app, {},
                            names = ['lovely.memcachedclient'])
 
+
 layer.defineLayer('MemcachedLayer', zcml='ftesting.zcml',
                   appSetUp=appSetUp,
                   clean=True)

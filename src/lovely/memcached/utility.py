@@ -119,7 +119,8 @@ class MemcachedClient(persistent.Persistent):
         log.debug('invalidate: %r, %r '% (key, ns))
         if self.trackKeys:
             self.client.delete(self._buildKey((ns, key), STAMP_NS))
-        self.client.delete(self._buildKey(key, ns, raw))
+        if key is not None:
+            self.client.delete(self._buildKey(key, ns, raw))
         for dep in dependencies:
             depKey = self._buildDepKey(dep, ns)
             keys = self.client.get(depKey)
