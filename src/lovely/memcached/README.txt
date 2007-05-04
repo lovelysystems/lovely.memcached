@@ -207,22 +207,22 @@ be used to invalidate entries.
 
   >>> util5 = MemcachedClient()
   >>> k = util5.set('data1', 'key1', dependencies=['something'])
-  >>> k = util5.set('data2', 'key2', dependencies=['something'])
+  >>> k = util5.set('data2', 'key2', dependencies=['something'], raw=True)
 
   >>> util5.query('key1')
   'data1'
-  >>> util5.query('key2')
+  >>> util5.query('key2', raw=True)
   'data2'
   
   >>> util.invalidate(dependencies=['otherthing'])
   >>> util5.query('key1')
   'data1'
-  >>> util5.query('key2')
+  >>> util5.query('key2', raw=True)
   'data2'
   >>> util.invalidate(dependencies=['something', 'another thing'])
   >>> util5.query('key1') is None
   True
-  >>> util5.query('key2') is None
+  >>> util5.query('key2', raw=True) is None
   True
   >>> k = util5.set('data3', 'key3', ns='1', dependencies=['something'])
   >>> util.invalidate(dependencies=['something'])
@@ -231,6 +231,8 @@ be used to invalidate entries.
   >>> util.invalidate(ns='1', dependencies=['something'])
   >>> util5.query('key3', ns='1') is None
   True
+
+
 
 Statistics
 ==========
