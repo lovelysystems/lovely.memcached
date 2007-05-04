@@ -248,4 +248,6 @@ server. As soon as a server is back online it will immediately used.
   >>> k = util.set('cached value', 'cache_object')
   >>> util.query('cache_object') is None
   True
+  >>> util.set('notStored', 'ignored') is None
+  True
 

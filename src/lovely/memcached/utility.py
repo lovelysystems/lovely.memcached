@@ -85,10 +85,11 @@ class MemcachedClient(persistent.Persistent):
                                            lifetime))
         
         bKey = self._buildKey(key, ns, raw=raw)
-        self.client.set(bKey, data, lifetime)
-        self._keysSet(key, ns, lifetime)
-        self._depSet(bKey, ns, dependencies)
-        return bKey
+        if self.client.set(bKey, data, lifetime):
+            self._keysSet(key, ns, lifetime)
+            self._depSet(bKey, ns, dependencies)
+            return bKey
+        return None
 
     def _depSet(self, key, ns, deps):
         for dep in deps:
