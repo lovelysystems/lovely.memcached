@@ -26,4 +26,5 @@ setup (
                         'zope.schema',
                         'z3c.configurator'
                         ],
+    zip_safe = False,
     )
