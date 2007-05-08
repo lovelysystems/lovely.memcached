@@ -22,15 +22,19 @@ from zope.testing.doctestunit import DocTestSuite, DocFileSuite
 
 def test_suite():
     level1Suites = (
+        DocFileSuite(
+            'testing/README.txt',
+            optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
+        ),
         DocTestSuite(
-        'lovely.memcached.utility',
-        optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
+            'lovely.memcached.utility',
+            optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
         ),
         )
     level2Suites = (
         DocFileSuite(
-        'README.txt',
-        optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
+            'README.txt',
+            optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
         ),
         )
     for suite in level2Suites:

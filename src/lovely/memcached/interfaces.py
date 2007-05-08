@@ -20,7 +20,7 @@ from zope import interface
 from zope import schema
 
 class IMemcachedClient(interface.Interface):
-    
+
     """A memcache client utility"""
 
     defaultNS = schema.TextLine(
@@ -28,7 +28,7 @@ class IMemcachedClient(interface.Interface):
         description=u"The default namespace used by this client",
         required=False,
         default=None)
-        
+
     servers = schema.List(
         title = u'Servers',
         description = u"Servers defined as <hostname>:<port>",
@@ -36,7 +36,7 @@ class IMemcachedClient(interface.Interface):
         required = True,
         default=['127.0.0.1:11211']
         )
-    
+
     defaultLifetime = schema.Int(
         title = u'Default Lifetime',
         description = u'The default lifetime of entries',
@@ -74,7 +74,7 @@ class IMemcachedClient(interface.Interface):
     def query(key, default=None, ns=None, raw=False):
         """query the cache for key in namespace, returns default if
         not found. ns defaults to default namespace."""
-        
+
     def invalidate(key=None, ns=None, raw=False, dependencies=[]):
         """invalidates key in namespace which defaults to default
         namespace, currently we can not invalidate just a namespace.
@@ -90,4 +90,38 @@ class IMemcachedClient(interface.Interface):
     def keys(ns=None):
         """if trackKeys is True, returns the keys defined in the
         namespace"""
-        
+
+
+class IInvalidateCacheEvent(interface.Interface):
+    """An event which invalidates cache entries."""
+
+    cacheName = schema.TextLine(
+            title = u'cacheName',
+            description = u"""
+                Invalidate in the cache with this name.
+                If no name is given all caches are invalidated.
+                """,
+            required = False,
+            )
+
+    key = schema.TextLine(
+            title = u'key',
+            required = False,
+            )
+
+    ns = schema.TextLine(
+            title = u'namespace',
+            required = False,
+            )
+
+    raw = schema.Bool(
+            title = u'raw',
+            required = False,
+            default = False,
+            )
+
+    dependencies = schema.List(
+            title = u'Dependencies',
+            required = False,
+            )
+

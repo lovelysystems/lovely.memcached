@@ -253,3 +253,52 @@ server. As soon as a server is back online it will immediately used.
   >>> util.set('notStored', 'ignored') is None
   True
 
+
+Invalidationevents
+==================
+
+Events can be used to create invalidations. The event handler invalidates in
+registered memcached utilities.
+
+  >>> from zope import component
+  >>> from lovely.memcached.interfaces import IMemcachedClient
+  >>> cacheUtil1 = MemcachedClient()
+  >>> component.provideUtility(cacheUtil1, IMemcachedClient, name='cacheUtil1')
+  >>> cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
+  '19192ccdbb8267c35b9bdaf2f1f5594b'
+
+  >>> cacheUtil1.query('key1')
+  'Value1'
+
+  >>> from lovely.memcached.event import InvalidateCacheEvent
+  >>> ev = InvalidateCacheEvent(dependencies=['dep1'])
+
+  >>> from lovely.memcached.event import invalidateCache
+  >>> invalidateCache(ev)
+  >>> cacheUtil1.query('key1') is None
+  True
+
+With more than one memcache utility we can invalidate in all utilities.
+
+  >>> from lovely.memcached.testing import TestMemcachedClient
+  >>> cacheUtil2 = TestMemcachedClient()
+  >>> component.provideUtility(cacheUtil2, IMemcachedClient, name='cacheUtil2')
+  >>> key = cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
+  >>> key = cacheUtil2.set('Value2', 'key2', dependencies=['dep1'])
+  >>> invalidateCache(InvalidateCacheEvent(dependencies=['dep1']))
+  >>> cacheUtil1.query('key1') is None
+  True
+  >>> cacheUtil2.query('key2') is None
+  True
+
+Or we specify in which memcache we want to invalidate.
+
+  >>> key = cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
+  >>> key = cacheUtil2.set('Value2', 'key2', dependencies=['dep1'])
+  >>> invalidateCache(InvalidateCacheEvent(cacheName='cacheUtil1',
+  ...                                      dependencies=['dep1']))
+  >>> cacheUtil1.query('key1') is None
+  True
+  >>> cacheUtil2.query('key2') is None
+  False
+

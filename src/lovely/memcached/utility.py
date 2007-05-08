@@ -124,8 +124,8 @@ class MemcachedClient(persistent.Persistent):
         for dep in dependencies:
             depKey = self._buildDepKey(dep, ns)
             keys = self.client.get(depKey)
-            self.invalidate(depKey)
             if keys is not None:
+                self.invalidate(depKey)
                 for key in keys:
                     self.client.delete(key)
 
@@ -203,7 +203,7 @@ class MemcachedClient(persistent.Persistent):
             self.storage.servers = self.servers
         client = getattr(self.storage, 'client', None)
         if client is None:
-            client = memcache.Client(self.servers, debug=0)
+            client = self._instantiateClient(debug=0)
             self.storage.client = client
         return client
 
@@ -217,6 +217,8 @@ class MemcachedClient(persistent.Persistent):
             self._keysInit(self._v_storage)
         return self._v_storage
 
+    def _instantiateClient(self, debug):
+        return memcache.Client(self.servers, debug=debug)
 
     def _keysInit(self, storage):
         storage.keys = {}
@@ -227,7 +229,6 @@ class MemcachedClient(persistent.Persistent):
         if not storage.uid in clients:
             clients.add(storage.uid)
             self.set(clients, 'clients', lifetime=0, ns=NS)
-
 
     def _keysSet(self, key, ns, lifetime):
         """track a key"""

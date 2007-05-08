@@ -23,6 +23,8 @@
   <adapter factory=".configurator.SetUpMemcachedClient"
            zcml:condition="installed z3c.configurator"
            name="lovely.memcachedclient"/>
+
+  <subscriber handler=".event.invalidateCache"/>
   
   <include package=".browser"/>
   

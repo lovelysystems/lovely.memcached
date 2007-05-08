@@ -1,6 +1,6 @@
-==============================
-Memcached utilit browser views
-==============================
+===============================
+Memcached utility browser views
+===============================
 
 Let us add a memcached utility.
 
