@@ -260,6 +260,7 @@ Invalidationevents
 Events can be used to create invalidations. The event handler invalidates in
 registered memcached utilities.
 
+  >>> from zope import event
   >>> from zope import component
   >>> from lovely.memcached.interfaces import IMemcachedClient
   >>> cacheUtil1 = MemcachedClient()
@@ -270,11 +271,11 @@ registered memcached utilities.
   >>> cacheUtil1.query('key1')
   'Value1'
 
-  >>> from lovely.memcached.event import InvalidateCacheEvent
-  >>> ev = InvalidateCacheEvent(dependencies=['dep1'])
-
   >>> from lovely.memcached.event import invalidateCache
-  >>> invalidateCache(ev)
+  >>> component.provideHandler(invalidateCache)
+
+  >>> from lovely.memcached.event import InvalidateCacheEvent
+  >>> event.notify(InvalidateCacheEvent(dependencies=['dep1']))
   >>> cacheUtil1.query('key1') is None
   True
 
@@ -285,7 +286,7 @@ With more than one memcache utility we can invalidate in all utilities.
   >>> component.provideUtility(cacheUtil2, IMemcachedClient, name='cacheUtil2')
   >>> key = cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
   >>> key = cacheUtil2.set('Value2', 'key2', dependencies=['dep1'])
-  >>> invalidateCache(InvalidateCacheEvent(dependencies=['dep1']))
+  >>> event.notify(InvalidateCacheEvent(dependencies=['dep1']))
   >>> cacheUtil1.query('key1') is None
   True
   >>> cacheUtil2.query('key2') is None
@@ -295,10 +296,27 @@ Or we specify in which memcache we want to invalidate.
 
   >>> key = cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
   >>> key = cacheUtil2.set('Value2', 'key2', dependencies=['dep1'])
-  >>> invalidateCache(InvalidateCacheEvent(cacheName='cacheUtil1',
-  ...                                      dependencies=['dep1']))
+  >>> event.notify(InvalidateCacheEvent(cacheName='cacheUtil1',
+  ...                                   dependencies=['dep1']))
   >>> cacheUtil1.query('key1') is None
   True
   >>> cacheUtil2.query('key2') is None
   False
+
+There is also a convenient function to invalidate caches depending on an
+instance.
+
+  >>> from zope.app.intid.interfaces import IIntIds
+  >>> intids = component.getUtility(IIntIds)
+  >>> from lovely.memcached.event import invalidateObjectCache
+  >>> class Content(object):
+  ...     pass
+  >>> obj = Content()
+  >>> id = intids.register(obj)
+  >>> key = cacheUtil2.set('Value3', 'key3', dependencies=[id])
+  >>> cacheUtil2.query('key3')
+  'Value3'
+  >>> invalidateObjectCache(obj)
+  >>> cacheUtil2.query('key3') is None
+  True
 

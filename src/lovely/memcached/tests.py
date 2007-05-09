@@ -17,8 +17,26 @@ $Id$
 __docformat__ = "reStructuredText"
 
 import unittest
+from zope import component
 from zope.testing import doctest
 from zope.testing.doctestunit import DocTestSuite, DocFileSuite
+
+from zope.app.keyreference import testing
+from zope.app.intid.interfaces import IIntIds
+from zope.app.intid import IntIds
+
+from zope.app.testing import setup
+
+
+def setUp(test):
+    test.globs['root'] = setup.placefulSetUp(site=True)
+    component.provideUtility(IntIds(), IIntIds)
+    component.provideAdapter(testing.SimpleKeyReference)
+
+
+def tearDown(test):
+    setup.placefulTearDown()
+
 
 def test_suite():
     level1Suites = (
@@ -34,6 +52,7 @@ def test_suite():
     level2Suites = (
         DocFileSuite(
             'README.txt',
+            setUp=setUp, tearDown=tearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
         ),
         )

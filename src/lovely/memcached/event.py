@@ -18,8 +18,17 @@ __docformat__ = 'restructuredtext'
 
 from zope import interface
 from zope import component
+from zope import event
+
+from zope.app.intid.interfaces import IIntIds
 
 from interfaces import IInvalidateCacheEvent, IMemcachedClient
+
+
+def invalidateObjectCache(obj):
+    """Invalidate caches based on the intid of an object"""
+    intids = component.getUtility(IIntIds)
+    event.notify(InvalidateCacheEvent(dependencies = [intids.getId(obj)]))
 
 
 class InvalidateCacheEvent(object):
