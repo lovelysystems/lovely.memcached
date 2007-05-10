@@ -25,12 +25,6 @@ from zope.app.intid.interfaces import IIntIds
 from interfaces import IInvalidateCacheEvent, IMemcachedClient
 
 
-def invalidateObjectCache(obj):
-    """Invalidate caches based on the intid of an object"""
-    intids = component.getUtility(IIntIds)
-    event.notify(InvalidateCacheEvent(dependencies = [intids.getId(obj)]))
-
-
 class InvalidateCacheEvent(object):
     interface.implements(IInvalidateCacheEvent)
 
@@ -53,5 +47,9 @@ def invalidateCache(event):
     else:
         caches = component.getAllUtilitiesRegisteredFor(IMemcachedClient)
     for cache in caches:
-        cache.invalidate(event.key, event.ns, event.raw, event.dependencies)
+        if event.raw == None:
+            cache.invalidate(event.key, event.ns, event.raw, event.dependencies)
+        else:
+            cache.invalidate(event.key, event.ns, True, event.dependencies)
+            cache.invalidate(event.key, event.ns, False, event.dependencies)
 

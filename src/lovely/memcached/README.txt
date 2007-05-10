@@ -104,7 +104,7 @@ have multiple threads.
   >>> import threading
   >>> log = []
 
-Each thread has a differnt thread.
+Each thread has a different thread.
 
   >>> def differentConn():
   ...     util3.set(3,3)
@@ -284,7 +284,7 @@ With more than one memcache utility we can invalidate in all utilities.
   >>> from lovely.memcached.testing import TestMemcachedClient
   >>> cacheUtil2 = TestMemcachedClient()
   >>> component.provideUtility(cacheUtil2, IMemcachedClient, name='cacheUtil2')
-  >>> key = cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
+  >>> key = cacheUtil1.set('Value1', 'key1', raw=True, dependencies=['dep1'])
   >>> key = cacheUtil2.set('Value2', 'key2', dependencies=['dep1'])
   >>> event.notify(InvalidateCacheEvent(dependencies=['dep1']))
   >>> cacheUtil1.query('key1') is None
@@ -294,7 +294,7 @@ With more than one memcache utility we can invalidate in all utilities.
 
 Or we specify in which memcache we want to invalidate.
 
-  >>> key = cacheUtil1.set('Value1', 'key1', dependencies=['dep1'])
+  >>> key = cacheUtil1.set('Value1', 'key1', raw=True, dependencies=['dep1'])
   >>> key = cacheUtil2.set('Value2', 'key2', dependencies=['dep1'])
   >>> event.notify(InvalidateCacheEvent(cacheName='cacheUtil1',
   ...                                   dependencies=['dep1']))
@@ -303,20 +303,16 @@ Or we specify in which memcache we want to invalidate.
   >>> cacheUtil2.query('key2') is None
   False
 
-There is also a convenient function to invalidate caches depending on an
-instance.
-
-  >>> from zope.app.intid.interfaces import IIntIds
-  >>> intids = component.getUtility(IIntIds)
-  >>> from lovely.memcached.event import invalidateObjectCache
-  >>> class Content(object):
-  ...     pass
-  >>> obj = Content()
-  >>> id = intids.register(obj)
-  >>> key = cacheUtil2.set('Value3', 'key3', dependencies=[id])
-  >>> cacheUtil2.query('key3')
-  'Value3'
-  >>> invalidateObjectCache(obj)
-  >>> cacheUtil2.query('key3') is None
+  >>> key = cacheUtil1.set('Value1', 'key1', ns='test', raw=False, dependencies=['dep1'])
+  >>> cacheUtil1.query('key1', ns='test', raw=False)
+  'Value1'
+  >>> event.notify(InvalidateCacheEvent(cacheName='cacheUtil1',
+  ...                                   dependencies=['dep1']))
+  >>> cacheUtil1.query('key1', ns='test', raw=False)
+  'Value1'
+  >>> event.notify(InvalidateCacheEvent(cacheName='cacheUtil1',
+  ...                                   ns='test',
+  ...                                   dependencies=['dep1']))
+  >>> cacheUtil1.query('key1', ns='test', raw=False) is None
   True
 

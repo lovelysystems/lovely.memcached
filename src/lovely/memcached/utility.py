@@ -100,7 +100,7 @@ class MemcachedClient(persistent.Persistent):
             else:
                 keys = keys +  (key,)
             self.client.set(depKey, keys)
-        
+
     def query(self, key, default=None, ns=None, raw=False):
         ns = self._getNS(ns, raw)
         res = self.client.get(self._buildKey(key, ns, raw=raw))
@@ -175,8 +175,6 @@ class MemcachedClient(persistent.Persistent):
         False
 
         If we set the key to raw we must provide a string
-        
-        
         """
         if raw is True:
             if ns:
@@ -184,7 +182,7 @@ class MemcachedClient(persistent.Persistent):
             if type(key)!= StringType:
                 raise ValueError, repr(key)
             return key
-        
+
         oid = getattr(key, '_p_oid', None)
         if oid is not None:
             key = oid
