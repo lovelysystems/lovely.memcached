@@ -240,7 +240,7 @@ Statistics
 This returns the stats for each server connected.
 
   >>> util.getStatistics()
-  [('127.0.0.1:11211 (1)', {'total_items':...]
+  [('127.0.0.1:11211 (1)', {...'total_items':...]
 
 If we use a server which doesn't exist we can still use the cache but noting
 will be stored. This behaviour allows us to run without a connected memcache

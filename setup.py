@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python
 from setuptools import setup, find_packages
 
 setup (
@@ -14,17 +14,23 @@ setup (
     include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['lovely'],
-    extras_require = dict(test = ['zope.app.testing',
+    extras_require = dict(test = ['z3c.configurator',
+                                  'z3c.testing',
+                                  'zope.app.keyreference',
                                   'zope.app.securitypolicy',
+                                  'zope.app.testing',
                                   'zope.app.zcmlfiles',
-                                  'zope.testbrowser',
                                   'z3c.testing',
                                   ]),
     install_requires = ['setuptools',
-                        'python-memcached',
-                        'ZODB3',
+                        'python-memcached',    
+                        'zope.app.component',
+                        'zope.app.intid',
+                        'zope.event',
+                        'zope.interface',
+                        'zope.lifecycleevent',
                         'zope.schema',
-                        'z3c.configurator'
+                        'zope.security'
                         ],
     zip_safe = False,
     )
