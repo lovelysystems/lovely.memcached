@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup (
     name='lovely.memcached',
-    version='0.1dev',
+    version='0.1.0',
     author = "Lovely Systems",
     author_email = "office@lovelysystems.com",
     description = "A memcached client utiltiy for zope 3",
@@ -21,6 +21,7 @@ setup (
                                   'zope.app.testing',
                                   'zope.app.zcmlfiles',
                                   'z3c.testing',
+                                  'zope.testbrowser',
                                   ]),
     install_requires = ['setuptools',
                         'python-memcached',    
