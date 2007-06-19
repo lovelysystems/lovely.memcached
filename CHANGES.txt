@@ -2,6 +2,12 @@
 Changes in lovely.memcached
 ===========================
 
+2007/06/19 0.1.1
+================
+
+- added hits and misses counter for the testing client
+
+
 2007/06/04 0.1.0
 ================
 

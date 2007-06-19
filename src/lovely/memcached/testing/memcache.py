@@ -27,11 +27,23 @@ class TestMemcachedClient(MemcachedClient):
     def _instantiateClient(self, debug):
         return SimulatedMemcached()
 
+    @property
+    def hits(self):
+        return self.client.hits
+
+    @property
+    def misses(self):
+        return self.client.misses
+
+    def resetCounts(self):
+        self.client.resetCounts()
+
 
 class SimulatedMemcached(object):
 
     def __init__(self):
         self.cache = {}
+        self.resetCounts()
 
     def getStats(self):
         return []
@@ -51,10 +63,13 @@ class SimulatedMemcached(object):
         str(key)
         data = self.cache.get(key, None)
         if data is None:
+            self._misses += 1
             return None
         if data[1] is None or datetime.now()<data[1]:
+            self._hits += 1
             return data[0]
         del self.cache[key]
+        self._misses += 1
         return None
 
     def delete(self, key):
@@ -63,4 +78,16 @@ class SimulatedMemcached(object):
 
     def flush_all(self):
         self.cache = {}
+
+    @property
+    def hits(self):
+        return self._hits
+
+    @property
+    def misses(self):
+        return self._misses
+
+    def resetCounts(self):
+        self._hits = 0
+        self._misses = 0
 

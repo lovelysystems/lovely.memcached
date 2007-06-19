@@ -26,6 +26,34 @@ Also the lifetime is handled.
   >>> cache.query('key') is None
   True
 
+The testcache has also a hit/misses counter which is sometimes useful for
+testing.
+
+  >>> cache.hits
+  2
+  >>> cache.misses
+  2
+  >>> cache.query('key') is None
+  True
+  >>> cache.hits
+  2
+  >>> cache.misses
+  3
+  >>> cache.set('value', 'key')
+  '613fb124907164bf8f0b04beb02cf59e'
+  >>> cache.query('key')
+  'value'
+  >>> cache.hits
+  3
+  >>> cache.misses
+  3
+
+  >>> cache.resetCounts()
+  >>> cache.hits
+  0
+  >>> cache.misses
+  0
+
 The TestMemcachedClient does it's best to simulate the behaviour of the
 original memcached implementation.
 
