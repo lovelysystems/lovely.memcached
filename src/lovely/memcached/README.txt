@@ -104,17 +104,23 @@ have multiple threads.
   >>> import threading
   >>> log = []
 
-Each thread has a different thread.
+Each thread has a different connection and uid.
 
   >>> def differentConn():
   ...     util3.set(3,3)
-  ...     log.append(sorted(util3.keys()))
+  ...     log.append((sorted(util3.keys()), util3.storage.uid))
   ...
   >>> thread = threading.Thread(target=differentConn)
   >>> thread.start()
   >>> thread.join()
   >>> log
-  [[1, 2, 3]]
+  [([1, 2, 3], '...-...-...')]
+
+Each key aware utility has its own uid per thread.
+
+  >>> util4 = MemcachedClient(trackKeys=True)
+  >>> util4.storage.uid != log[0][1]
+  True
 
 Keys expire too
 
@@ -159,8 +165,6 @@ keys. Sometimes, if an axternal application wants to have access to
 the values, it is usefull to be able to set keys explicitly. This can
 be done by setting the raw keyword argument to True on the set
 and query methods.
-
-  >>> util4 = MemcachedClient()
 
 If raw is used, the key must be a string.
 

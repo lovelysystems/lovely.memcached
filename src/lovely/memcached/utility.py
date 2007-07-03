@@ -24,9 +24,10 @@ import time
 import logging
 import memcache
 import cPickle
-from threading import local
+import threading
 import persistent
-
+import os
+import socket
 from zope.schema.fieldproperty import FieldProperty
 from zope import interface
 from interfaces import IMemcachedClient
@@ -210,23 +211,34 @@ class MemcachedClient(persistent.Persistent):
         # we use a thread local storage to have a memcache client for every
         # thread.
         if not hasattr(self, '_v_storage'):
-            self._v_storage = local()
+            log.info('Creating new local storage')
+            self._v_storage = threading.local()
         if self.trackKeys and not hasattr(self._v_storage, 'keys'):
-            self._keysInit(self._v_storage)
+            tName = threading.currentThread().getName()
+            pid = os.getpid()
+            hostName = socket.gethostname()
+            uid = '%s-%s-%s' % (hostName,
+                                pid,
+                                tName)
+            self._keysInit(self._v_storage, uid)
         return self._v_storage
 
     def _instantiateClient(self, debug):
         return memcache.Client(self.servers, debug=debug)
 
-    def _keysInit(self, storage):
+    def _keysInit(self, storage, uid, clients=None):
+        log.info('Init of keytracking uid: %r' % uid)
         storage.keys = {}
-        storage.uid = random.randint(0, sys.maxint)
+        storage.uid = uid
         storage.dirtyKeys = set()
         storage.lastUpdates = {}
-        clients = self._getClients()
+        if clients is None:
+            clients = self._getClients()
         if not storage.uid in clients:
+            log.info('Adding new client uid: %r' % storage.uid)
             clients.add(storage.uid)
             self.set(clients, 'clients', lifetime=0, ns=NS)
+        return clients
 
     def _keysSet(self, key, ns, lifetime):
         """track a key"""
@@ -250,15 +262,18 @@ class MemcachedClient(persistent.Persistent):
         res = set()
         s = self.storage
         t = time.time()
+        clients = self._getClients()
+        changed = False
+        if not s.uid in clients:
+            clients = self._keysInit(s, s.uid, clients)
         localKeys = s.keys.get(ns, set())
-        for client in self._getClients():
+        for client in clients:
             if client == s.uid:
                 v = localKeys
             else:
                 v = self.query((client, ns), default=set(), ns=NS)
             res.update(v)
         # look at the timestamps
-        changed = False
         for k in list(res):
             uid = self.query((ns, k), ns=STAMP_NS)
             if uid is None:
@@ -274,7 +289,7 @@ class MemcachedClient(persistent.Persistent):
             s.dirtyKeys.add(ns)
             self._keysUpdate(localKeys, ns)
         return res
-        
+
 
     def _keysUpdate(self, keys, ns):
         # updates the key set of this thread on server

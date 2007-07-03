@@ -2,6 +2,13 @@
 Changes in lovely.memcached
 ===========================
 
+After 0.1.1
+===========
+
+- use a specific client uid for key tracking
+
+- more logging
+
 2007/06/19 0.1.1
 ================
 
