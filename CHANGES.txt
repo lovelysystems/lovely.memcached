@@ -2,8 +2,8 @@
 Changes in lovely.memcached
 ===========================
 
-After 0.1.1
-===========
+2007/07/03 0.1.2:
+=================
 
 - refactor the storage implementation to prevent side effects when a
   utility gets reloaded from zodb
