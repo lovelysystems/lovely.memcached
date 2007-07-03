@@ -221,7 +221,7 @@ class MemcachedClient(persistent.Persistent):
         key = (tuple(self.servers), self.trackKeys)
         storage = self._storages().get(key)
         if storage is None:
-            log.info('Creating new local storage')
+            log.info('Creating new local storage with key %r' % (key,))
             storage = self._storages()[key] = Storage()
         if self.trackKeys and not hasattr(storage, 'keys'):
             tName = threading.currentThread().getName()
