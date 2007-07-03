@@ -5,6 +5,9 @@ Changes in lovely.memcached
 After 0.1.1
 ===========
 
+- refactor the storage implementation to prevent side effects when a
+  utility gets reloaded from zodb
+
 - use a specific client uid for key tracking
 
 - more logging

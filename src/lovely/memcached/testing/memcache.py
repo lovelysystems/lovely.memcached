@@ -19,13 +19,24 @@ __docformat__ = "reStructuredText"
 from datetime import datetime, timedelta
 
 from lovely.memcached.utility import MemcachedClient
+import threading
 
+# the own client storage for testing
+TLOCAL = threading.local()
 
 class TestMemcachedClient(MemcachedClient):
     """A memcache client which doesn't need a running memcache daemon"""
 
+    def __init__(self, *args, **kw):
+        super(TestMemcachedClient, self).__init__(*args, **kw)
+        # reset counts etc
+        self.resetCounts()
+
     def _instantiateClient(self, debug):
         return SimulatedMemcached()
+
+    def _storages(self):
+        return TLOCAL.__dict__
 
     @property
     def hits(self):

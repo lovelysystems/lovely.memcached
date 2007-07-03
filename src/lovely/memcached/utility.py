@@ -33,6 +33,8 @@ from zope import interface
 from interfaces import IMemcachedClient
 from types import StringType
 
+TLOCAL = threading.local()
+
 log = logging.getLogger('lovely.memcached')
 
 # base namespace for key management
@@ -42,6 +44,9 @@ STAMP_NS = NS + '.stamps'
 # namespace for deps
 DEP_NS = NS + '.dep'
 
+class Storage(object):
+    pass
+
 class MemcachedClient(persistent.Persistent):
     interface.implements(IMemcachedClient)
 
@@ -50,7 +55,7 @@ class MemcachedClient(persistent.Persistent):
     defaultLifetime = FieldProperty(
         IMemcachedClient['defaultLifetime'])
     trackKeys = FieldProperty(IMemcachedClient['trackKeys'])
-    
+
     def __init__(self, servers=None, defaultAge=None,
                  defaultNS=None, trackKeys=None):
         if servers is not None:
@@ -84,7 +89,7 @@ class MemcachedClient(persistent.Persistent):
         log.debug('set: %r, %r, %r, %r' % (key,
                                            len(data), ns,
                                            lifetime))
-        
+
         bKey = self._buildKey(key, ns, raw=raw)
         if self.client.set(bKey, data, lifetime):
             self._keysSet(key, ns, lifetime)
@@ -133,27 +138,27 @@ class MemcachedClient(persistent.Persistent):
     def invalidateAll(self):
         # notice this does not look at namespaces
         self.client.flush_all()
-        if hasattr(self, '_v_storage'):
-            del self._v_storage
+        key = (tuple(self.servers), self.trackKeys)
+        del self._storages()[key]
 
     def _buildKey(self, key, ns, raw=False):
 
         """builds a key for key and ns, if key is a persistent
         object its oid is used
-        
+
         >>> vc1 = MemcachedClient()
         >>> k1 = vc1._buildKey(1, None)
 
         of course the key is the same for same arguments
         >>> k1 == vc1._buildKey(1, None)
         True
-        
+
         the key is an md5 digest
         >>> len(k1)
         32
 
         for different namespaces the keys are different
-        
+
         >>> vc2 = MemcachedClient()
         >>> k2 = vc2._buildKey(1, u'vc2')
         >>> k2 != k1
@@ -195,33 +200,38 @@ class MemcachedClient(persistent.Persistent):
 
     @property
     def client(self):
-        servers = getattr(self.storage, 'servers', None)
-        if servers is not self.servers:
-            # we have a change in the list of servers
-            self.storage.client = None
-            self.storage.servers = self.servers
+#        servers = getattr(self.storage, 'servers', None)
+#         if servers is not self.servers:
+#             # we have a change in the list of servers
+#             self.storage.client = None
+#             self.storage.servers = self.servers
         client = getattr(self.storage, 'client', None)
         if client is None:
             client = self._instantiateClient(debug=0)
             self.storage.client = client
         return client
 
+    def _storages(self):
+        return TLOCAL.__dict__
+
     @property
     def storage(self):
         # we use a thread local storage to have a memcache client for every
         # thread.
-        if not hasattr(self, '_v_storage'):
+        key = (tuple(self.servers), self.trackKeys)
+        storage = self._storages().get(key)
+        if storage is None:
             log.info('Creating new local storage')
-            self._v_storage = threading.local()
-        if self.trackKeys and not hasattr(self._v_storage, 'keys'):
+            storage = self._storages()[key] = Storage()
+        if self.trackKeys and not hasattr(storage, 'keys'):
             tName = threading.currentThread().getName()
             pid = os.getpid()
             hostName = socket.gethostname()
             uid = '%s-%s-%s' % (hostName,
                                 pid,
                                 tName)
-            self._keysInit(self._v_storage, uid)
-        return self._v_storage
+            self._keysInit(storage, uid)
+        return storage
 
     def _instantiateClient(self, debug):
         return memcache.Client(self.servers, debug=debug)
@@ -303,4 +313,4 @@ class MemcachedClient(persistent.Persistent):
         self.set(keys, (s.uid, ns), lifetime=0, ns=NS)
         s.dirtyKeys.discard(ns)
         s.lastUpdates[ns] = t
-        
+
