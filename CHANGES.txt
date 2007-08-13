@@ -2,6 +2,16 @@
 Changes in lovely.memcached
 ===========================
 
+2007/08/13 0.1.3:
+=================
+
+- optimized handling for invalidations
+
+- raise a ValueError if the cache data in raw mode is not str.
+
+- added more tests for dependencies
+
+
 2007/07/03 0.1.2:
 =================
 

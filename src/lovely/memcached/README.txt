@@ -166,22 +166,25 @@ the values, it is usefull to be able to set keys explicitly. This can
 be done by setting the raw keyword argument to True on the set
 and query methods.
 
-If raw is used, the key must be a string.
+If raw is used, the value must be a string.
 
-  >>> k = util.set(u'value of a', u'a', raw=True)
+  >>> k = util.set('value of a', u'a', raw=True)
   Traceback (most recent call last):
+  ...
   ValueError: u'a'
 
-  >>> util.set(u'value of a', 'a', raw=True)
+  >>> util.set('value of a', 'a', raw=True)
   'a'
 
 The namespace is simply prepended to the key if provided. And must be
 a string too.
 
-  >>> util.set(u'value of a', 'a', ns=u'NS_', raw=True)
+  >>> util.set('value of a', 'a', ns=u'NS_', raw=True)
   Traceback (most recent call last):
+  ...
   ValueError: u'NS_a'
-  >>> util.set(u'value of a', 'a', ns='NS_', raw=True)
+
+  >>> util.set('value of a', 'a', ns='NS_', raw=True)
   'NS_a'
 
   
@@ -213,21 +216,42 @@ be used to invalidate entries.
   >>> k = util5.set('data1', 'key1', dependencies=['something'])
   >>> k = util5.set('data2', 'key2', dependencies=['something'], raw=True)
 
+We have an entry in memcache which holds the list of dependencies.
+
+  >>> depKey = util5._buildDepKey('something', util5._getNS(None, False))
+  >>> util5.query(depKey, raw=True)
+  ('19192ccdbb8267c35b9bdaf2f1f5594b', 'key2')
+
   >>> util5.query('key1')
   'data1'
   >>> util5.query('key2', raw=True)
   'data2'
-  
+
+Invalitating a non existing invalidation key keeps the existing entries in the
+cache.
+
   >>> util.invalidate(dependencies=['otherthing'])
   >>> util5.query('key1')
   'data1'
   >>> util5.query('key2', raw=True)
   'data2'
+
+Also the dependency list is unchanged.
+
+  >>> util5.query(depKey, raw=True)
+  ('19192ccdbb8267c35b9bdaf2f1f5594b', 'key2')
+
+Now invalidating with an existing key removes our cache entries and also the
+dependency entry.
+
   >>> util.invalidate(dependencies=['something', 'another thing'])
   >>> util5.query('key1') is None
   True
   >>> util5.query('key2', raw=True) is None
   True
+  >>> util5.query(depKey, raw=True) is None
+  True
+
   >>> k = util5.set('data3', 'key3', ns='1', dependencies=['something'])
   >>> util.invalidate(dependencies=['something'])
   >>> util5.query('key3', ns='1')
@@ -235,7 +259,6 @@ be used to invalidate entries.
   >>> util.invalidate(ns='1', dependencies=['something'])
   >>> util5.query('key3', ns='1') is None
   True
-
 
 
 Statistics

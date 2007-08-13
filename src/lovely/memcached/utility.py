@@ -86,6 +86,8 @@ class MemcachedClient(persistent.Persistent):
         ns = self._getNS(ns, raw)
         if not raw:
             data = cPickle.dumps(data)
+        elif not isinstance(data, StringType):
+            raise ValueError, data
         log.debug('set: %r, %r, %r, %r' % (key,
                                            len(data), ns,
                                            lifetime))
@@ -131,7 +133,7 @@ class MemcachedClient(persistent.Persistent):
             depKey = self._buildDepKey(dep, ns)
             keys = self.client.get(depKey)
             if keys is not None:
-                self.invalidate(depKey)
+                self.client.delete(depKey)
                 for key in keys:
                     self.client.delete(key)
 
@@ -185,7 +187,7 @@ class MemcachedClient(persistent.Persistent):
         if raw is True:
             if ns:
                 key = ns+key
-            if type(key)!= StringType:
+            if type(key) != StringType:
                 raise ValueError, repr(key)
             return key
 

@@ -47,7 +47,7 @@ def invalidateCache(event):
     else:
         caches = component.getAllUtilitiesRegisteredFor(IMemcachedClient)
     for cache in caches:
-        if event.raw == None:
+        if event.raw is not None:
             cache.invalidate(event.key, event.ns, event.raw, event.dependencies)
         else:
             cache.invalidate(event.key, event.ns, True, event.dependencies)
