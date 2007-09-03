@@ -2,6 +2,11 @@
 Changes in lovely.memcached
 ===========================
 
+After:
+======
+
+- added find-links to buildout
+
 2007/08/13 0.1.3:
 =================
 
