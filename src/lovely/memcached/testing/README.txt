@@ -22,7 +22,7 @@ Also the lifetime is handled.
   >>> cache.query('key')
   'value'
   >>> from time import sleep
-  >>> sleep(1)
+  >>> sleep(1.2)
   >>> cache.query('key') is None
   True
 

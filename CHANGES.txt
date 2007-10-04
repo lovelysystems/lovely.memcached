@@ -5,7 +5,9 @@ Changes in lovely.memcached
 After:
 ======
 
+- Make testing.README sleep a tad longer so the buildbot is happy.
 - added find-links to buildout
+
 
 2007/08/13 0.1.3:
 =================
