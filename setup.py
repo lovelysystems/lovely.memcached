@@ -1,5 +1,10 @@
 #!/usr/bin/env python
+import os
 from setuptools import setup, find_packages
+
+# We can not include the full README.txt file since it contains
+# unicode chars within doctests which will make setuptools break.
+long_description = file('README.txt').read()
 
 setup (
     name='lovely.memcached',
@@ -7,6 +12,7 @@ setup (
     author = "Lovely Systems",
     author_email = "office@lovelysystems.com",
     description = "A memcached client utiltiy for zope 3",
+    long_description = long_description,
     license = "ZPL 2.1",
     keywords = "zope3 zope memcached cache ram",
     url = 'svn://svn.zope.org/repos/main/lovely.memcached',
