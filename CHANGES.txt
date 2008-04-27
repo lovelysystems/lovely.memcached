@@ -8,6 +8,10 @@ After:
 - Make testing.README sleep a tad longer so the buildbot is happy.
 - added find-links to buildout
 
+2008/04/27  0.1.4:
+==================
+
+- tagging current trunk (unchanged since 8 month) as 0.1.4
 
 2007/08/13 0.1.3:
 =================
