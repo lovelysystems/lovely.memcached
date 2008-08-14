@@ -38,8 +38,8 @@ If we no longer need the cached value we can invalidate it.
 
 We have extended the original implementation on memcache.py for unicode.
 
-  >>> key = util.set(u'cached value Ã¤', 'cache_key')
-  >>> util.query('cache_key') == u'cached value Ã¤'
+  >>> key = util.set(u'cached value öüß', 'cache_key')
+  >>> util.query('cache_key') == u'cached value öüß'
   True
 
 We can invalidate the hole cache.
