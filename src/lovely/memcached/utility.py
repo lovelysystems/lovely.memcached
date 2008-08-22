@@ -31,7 +31,6 @@ import socket
 from zope.schema.fieldproperty import FieldProperty
 from zope import interface
 from interfaces import IMemcachedClient
-from types import StringType
 
 TLOCAL = threading.local()
 
@@ -86,7 +85,7 @@ class MemcachedClient(persistent.Persistent):
         ns = self._getNS(ns, raw)
         if not raw:
             data = cPickle.dumps(data)
-        elif not isinstance(data, StringType):
+        elif not isinstance(data, str):
             raise ValueError, data
         log.debug('set: %r, %r, %r, %r' % (key,
                                            len(data), ns,
@@ -187,7 +186,7 @@ class MemcachedClient(persistent.Persistent):
         if raw is True:
             if ns:
                 key = ns+key
-            if type(key) != StringType:
+            if not isinstance(key, str):
                 raise ValueError, repr(key)
             return key
 
