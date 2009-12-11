@@ -124,4 +124,3 @@ class IInvalidateCacheEvent(interface.Interface):
             title = u'Dependencies',
             required = False,
             )
-

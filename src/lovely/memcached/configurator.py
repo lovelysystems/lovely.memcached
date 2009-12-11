@@ -22,7 +22,7 @@ from zope import component
 from zope.interface.interfaces import IMethod
 from zope import schema
 from z3c.configurator import configurator
-from zope.app.component.interfaces import ISite
+from zope.component.interfaces import ISite
 from zope.lifecycleevent import ObjectCreatedEvent
 import zope.event
 from zope.security.proxy import removeSecurityProxy
@@ -32,11 +32,11 @@ class IMemcachedClientProperties(interfaces.IMemcachedClient):
     name = schema.TextLine(title=u'Name',
                            required=False,
                            default=u'')
-    
+
 class SetUpMemcachedClient(configurator.SchemaConfigurationPluginBase):
     component.adapts(ISite)
     schema = IMemcachedClientProperties
-    
+
     def __call__(self, data):
 
         for name in self.schema:

@@ -16,24 +16,20 @@ $Id$
 """
 __docformat__ = "reStructuredText"
 
+import os.path
 import unittest
 from zope.testing import doctest
 from zope.app.testing import functional
-from z3c.testing import layer
-from z3c.configurator import configurator
+from zope.app.testing.functional import ZCMLLayer
 
-def appSetUp(app):
-    configurator.configure(app, {},
-                           names = ['lovely.memcachedclient'])
+memcachedLayer = ZCMLLayer(
+    os.path.join(os.path.split(__file__)[0], 'ftesting.zcml'),
+    __name__, 'memcachedLayer', allow_teardown=True)
 
-
-layer.defineLayer('MemcachedLayer', zcml='ftesting.zcml',
-                  appSetUp=appSetUp,
-                  clean=True)
 
 def test_suite():
     suite = functional.FunctionalDocFileSuite('README.txt')
-    suite.layer = MemcachedLayer
+    suite.layer = memcachedLayer
     suite.level = 2
     return unittest.TestSuite((suite,))
 

@@ -4,6 +4,10 @@ Memcached utility browser views
 
 Let us add a memcached utility.
 
+  >>> from z3c.configurator import configurator
+  >>> configurator.configure(
+  ...     getRootFolder(), {}, names = ['lovely.memcachedclient'])
+
   >>> from zope.testbrowser.testing import Browser
   >>> browser = Browser()
   >>> browser.addHeader('Authorization','Basic mgr:mgrpw')

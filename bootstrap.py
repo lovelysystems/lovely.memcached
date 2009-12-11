@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2006 Zope Corporation and Contributors.
+# Copyright (c) 2006 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -24,6 +24,8 @@ import os, shutil, sys, tempfile, urllib2
 
 tmpeggs = tempfile.mkdtemp()
 
+is_jython = sys.platform.startswith('java')
+
 try:
     import pkg_resources
 except ImportError:
@@ -34,23 +36,42 @@ except ImportError:
 
     import pkg_resources
 
-cmd = 'from setuptools.command.easy_install import main; main()'
 if sys.platform == 'win32':
-    cmd = '"%s"' % cmd # work around spawn lamosity on windows
+    def quote(c):
+        if ' ' in c:
+            return '"%s"' % c # work around spawn lamosity on windows
+        else:
+            return c
+else:
+    def quote (c):
+        return c
 
-ws = pkg_resources.working_set
-assert os.spawnle(
-    os.P_WAIT, sys.executable, sys.executable,
-    '-c', cmd, '-mqNxd', tmpeggs, 'zc.buildout',
-    dict(os.environ,
-         PYTHONPATH=
-         ws.find(pkg_resources.Requirement.parse('setuptools')).location
-         ),
-    ) == 0
+cmd = 'from setuptools.command.easy_install import main; main()'
+ws  = pkg_resources.working_set
+
+if is_jython:
+    import subprocess
+
+    assert subprocess.Popen([sys.executable] + ['-c', quote(cmd), '-mqNxd',
+           quote(tmpeggs), 'zc.buildout'],
+           env=dict(os.environ,
+               PYTHONPATH=
+               ws.find(pkg_resources.Requirement.parse('setuptools')).location
+               ),
+           ).wait() == 0
+
+else:
+    assert os.spawnle(
+        os.P_WAIT, sys.executable, quote (sys.executable),
+        '-c', quote (cmd), '-mqNxd', quote (tmpeggs), 'zc.buildout',
+        dict(os.environ,
+            PYTHONPATH=
+            ws.find(pkg_resources.Requirement.parse('setuptools')).location
+            ),
+        ) == 0
 
 ws.add_entry(tmpeggs)
 ws.require('zc.buildout')
 import zc.buildout.buildout
 zc.buildout.buildout.main(sys.argv[1:] + ['bootstrap'])
 shutil.rmtree(tmpeggs)
-

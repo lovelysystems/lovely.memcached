@@ -21,9 +21,9 @@ from zope import component
 from zope.testing import doctest
 from zope.testing.doctestunit import DocTestSuite, DocFileSuite
 
-from zope.app.keyreference import testing
-from zope.app.intid.interfaces import IIntIds
-from zope.app.intid import IntIds
+from zope.keyreference import testing
+from zope.intid.interfaces import IIntIds
+from zope.intid import IntIds
 
 from zope.app.testing import setup
 

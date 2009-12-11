@@ -101,4 +101,3 @@ class SimulatedMemcached(object):
     def resetCounts(self):
         self._hits = 0
         self._misses = 0
-

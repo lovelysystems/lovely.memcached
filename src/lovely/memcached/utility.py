@@ -314,4 +314,3 @@ class MemcachedClient(persistent.Persistent):
         self.set(keys, (s.uid, ns), lifetime=0, ns=NS)
         s.dirtyKeys.discard(ns)
         s.lastUpdates[ns] = t
-

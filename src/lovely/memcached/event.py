@@ -20,7 +20,7 @@ from zope import interface
 from zope import component
 from zope import event
 
-from zope.app.intid.interfaces import IIntIds
+from zope.intid.interfaces import IIntIds
 
 from interfaces import IInvalidateCacheEvent, IMemcachedClient
 
@@ -52,4 +52,3 @@ def invalidateCache(event):
         else:
             cache.invalidate(event.key, event.ns, True, event.dependencies)
             cache.invalidate(event.key, event.ns, False, event.dependencies)
-

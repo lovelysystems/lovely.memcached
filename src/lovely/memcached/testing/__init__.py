@@ -17,4 +17,3 @@ $Id$
 __docformat__ = "reStructuredText"
 
 from memcache import TestMemcachedClient
-
