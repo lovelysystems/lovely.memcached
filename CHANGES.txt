@@ -2,7 +2,7 @@
 Changes in lovely.memcached
 ===========================
 
-0.2.0 (Unreleased)
+0.2.0 (12-11-2009)
 ------------------
 
 - Use zope.intid, zope.keyreference, zope.site, zope component instead
