@@ -8,7 +8,7 @@ long_description = file('README.txt').read()
 
 setup (
     name='lovely.memcached',
-    version='0.1.4',
+    version='0.2.0',
     author = "Lovely Systems",
     author_email = "office@lovelysystems.com",
     description = "A memcached client utiltiy for zope 3",
