@@ -15,7 +15,7 @@ setup (
     long_description = long_description,
     license = "ZPL 2.1",
     keywords = "zope3 zope memcached cache ram",
-    url = 'svn://svn.zope.org/repos/main/lovely.memcached',
+    url = 'http://github.com/lovelysystems/lovely.memcached',
     packages = find_packages('src'),
     include_package_data = True,
     package_dir = {'':'src'},

@@ -5,6 +5,8 @@ Changes in lovely.memcached
 0.2.0 (Unreleased)
 ------------------
 
+- moved project to github http://github.com/lovelysystems/lovely.memcached
+
 - Use zope.intid, zope.keyreference, zope.site, zope component instead
   of zope.app.intid, zope.app.keyreference, zope.app.component
 
