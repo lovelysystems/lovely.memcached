@@ -1,4 +1,4 @@
-global-exclude *pyc
-global-exclude *~
-global-exclude *.un~
-global-include *mo
+include *
+recursive-include *.pt *.txt *.xml *.zcml
+global-include *.mo
+global-exclude *.pyc *~ *.un~
