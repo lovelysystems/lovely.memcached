@@ -1,4 +1,4 @@
 include *
-recursive-include *.pt *.txt *.xml *.zcml
+recursive-include src *.pt *.txt *.xml *.zcml
 global-include *.mo
 global-exclude *.pyc *~ *.un~
