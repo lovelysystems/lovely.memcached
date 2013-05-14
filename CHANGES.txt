@@ -1,9 +1,16 @@
 Changes
 =======
 
+0.2.2 - (2012-10-08)
+--------------------
+
+- project structure update to run setup.py from buildout
+
+
 0.2.1 - (2012-10-08)
 --------------------
-- Released this package on pypi [avoinea]
+
+- fixed manifest for propper release
 
 0.2.0 (12-11-2009)
 ------------------
