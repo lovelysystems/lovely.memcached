@@ -1,18 +1,18 @@
 Changes
 =======
 
-0.2.2 - 2013-05-14
-------------------
+2013/05/14 0.2.2
+----------------
 
 - project structure update to run setup.py from buildout
 
 
-0.2.1 - 2012-10-08
-------------------
+2012/10/08 0.2.1
+----------------
 
 - fixed manifest for propper release
 
-0.2.0 12-11-2009
+12-11-2009 0.2.0
 ----------------
 
 - moved project to github http://github.com/lovelysystems/lovely.memcached
